@@ -1,11 +1,15 @@
 package ru.hse.moms.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Family {
     @Id
@@ -22,4 +26,8 @@ public class Family {
     @OneToOne
     @JoinColumn(name = "host_id")
     private User host;
+
+    public Family(User host) {
+        this.host = host;
+    }
 }

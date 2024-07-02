@@ -17,12 +17,10 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    // Создание или обновление задачи
     public Task saveOrUpdateTask(Task task) {
         return taskRepository.save(task);
     }
 
-    // Получение всех задач
     public List<Task> getAllTasks() {
         return taskRepository.findAll();
     }

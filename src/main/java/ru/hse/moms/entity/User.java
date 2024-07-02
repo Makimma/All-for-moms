@@ -1,13 +1,17 @@
 package ru.hse.moms.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name="\"user\"")
 public class User {
     @Id
@@ -41,4 +45,14 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "reward_id"))
     private List<Reward> rewards;
+
+    public User(String email,
+                String name,
+                String password,
+                Date dateOfBirth) {
+        this.email = email;
+        this.name = name;
+        this.password = password;
+        this.dateOfBirth = dateOfBirth;
+    }
 }
