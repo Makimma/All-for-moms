@@ -19,8 +19,12 @@ public class User {
     private String name;
     private String password;
     private Date dateOfBirth;
+    private int balance;
 
-    @OneToMany(mappedBy = "taskSetter")
+    @OneToMany(
+            mappedBy = "taskSetter",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Task> tasks;
 
     @ManyToOne
