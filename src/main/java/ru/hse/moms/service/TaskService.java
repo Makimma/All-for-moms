@@ -32,4 +32,12 @@ public class TaskService {
     public void deleteTaskById(Long id) {
         taskRepository.deleteById(id);
     }
+
+    public List<Task> getTasksByTaskSetterId(Long userId) {
+        return taskRepository.findByTaskSetterId(userId);
+    }
+
+    public List<Task> getTasksByTaskGetterId(Long userId) {
+        return taskRepository.findByTaskGetterId(userId);
+    }
 }
