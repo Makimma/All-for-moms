@@ -1,6 +1,7 @@
 package ru.hse.moms.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.Family;
 import ru.hse.moms.entity.User;
@@ -26,8 +27,19 @@ public class FamilyService {
     private final TypeService typeService;
 
     public FamilyResponse getFamily(Long familyId) {
+        Long currentUserId = AuthUtils.getCurrentId();
+        User currentUser = userRepository.findById(currentUserId).orElseThrow(() ->
+                new UserNotFoundException("User not found"));
+
         Family family = familyRepository.findById(familyId).orElseThrow(() ->
                 new FamilyNotFound(String.format("Family with id %d not found", familyId)));
+
+        boolean isMember = family.getMembers().stream()
+                .anyMatch(member -> member.getId().equals(currentUser.getId()));
+
+        if (!isMember && !family.getHost().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Access denied: You are not a member of this family");
+        }
         return familyMapper.makeFamilyResponse(family);
     }
 
