@@ -45,7 +45,7 @@ public class UserService {
                 new UserNotFoundException(String.format("User %s not found", username)));
     }
 
-    public JwtResponse signUp(SignUpRequest signUpRequest){
+    public JwtResponse signUp(SignUpRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new UsernameAlreadyExistsException(
                     String.format("User %s already exists", signUpRequest.getUsername()));
@@ -60,6 +60,7 @@ public class UserService {
                 .email(signUpRequest.getEmail())
                 .role(roleRepository.findByRoleName("USER").orElseThrow(() ->
                         new RuntimeException("Create Roles! it tries to find USER role in db")))
+                .name(signUpRequest.getName())
                 .dateOfBirth(signUpRequest.getDateOfBirth())
                 .balance(0)
                 .build();
@@ -93,21 +94,23 @@ public class UserService {
         }
         return userMapper.makeUserResponse(user);
     }
+
     public UserResponse getCurrentUser() {
         Long userId = AuthUtils.getCurrentId();
         assert userId != null;
         return userMapper.makeUserResponse(
                 userRepository.findById(userId).orElseThrow(
                         () -> new RuntimeException(
-                                String.format("User with id %d is registered but not found in database" ,userId))
+                                String.format("User with id %d is registered but not found in database", userId))
                 )
         );
     }
+
     public UserResponse updateUser(UpdateUserRequest updateUserRequest) {
         Long userId = AuthUtils.getCurrentId();
         assert userId != null;
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
-                String.format("User with id %d is registered but not found in database" ,userId)));
+                String.format("User with id %d is registered but not found in database", userId)));
         if (updateUserRequest.getPassword() != null) {
             if (!passwordEncoderConfig.getPasswordEncoder()
                     .matches(updateUserRequest.getPassword(), user.getPassword())) {
@@ -126,6 +129,7 @@ public class UserService {
         }
         return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
     }
+
     public boolean deleteUser(Long userId) {
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId);
@@ -134,11 +138,12 @@ public class UserService {
         return false;
 
     }
+
     public UserResponse addReward(Long rewardId) {
         Long userId = AuthUtils.getCurrentId();
         assert userId != null;
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
-                String.format("User with id %d is registered but not found in database" ,userId)));
+                String.format("User with id %d is registered but not found in database", userId)));
         user.getRewards().add(rewardRepository.findById(rewardId).orElseThrow(
                 () -> new RuntimeException(String.format("Reward with id: %s not found", rewardId))));
         return userMapper.makeUserResponse(userRepository.saveAndFlush(user));

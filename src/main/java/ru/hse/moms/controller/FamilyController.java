@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.hse.moms.request.FamilyRequest;
-import ru.hse.moms.request.GetUserRequest;
-import ru.hse.moms.request.UpdateUserRequest;
 import ru.hse.moms.service.FamilyService;
 
 @RestController

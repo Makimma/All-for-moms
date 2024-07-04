@@ -10,3 +10,9 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+jwt:
+  lifetime: 30m
+  security:
+#   test secret
+    secret: dwPZwJweEM8AobGtCW/BLlaEr1shdgWvVOU1ItqIRJ8=
+
