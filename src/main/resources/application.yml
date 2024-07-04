@@ -2,17 +2,16 @@ spring:
   application:
     name: moms
   datasource:
-    url: jdbc:postgresql://localhost:5432/Moms
+    url: jdbc:postgresql://localhost:5432/moms
     driverClassName: org.postgresql.Driver
     username: postgres
-    password: postgres
+    password: 1234
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-jwt:
-  lifetime: 30m
-  security:
-#   test secret
-    secret: dwPZwJweEM8AobGtCW/BLlaEr1shdgWvVOU1ItqIRJ8=
 
+jwt:
+  security:
+    secret: dPm0sj-aH7uinrw6kehVHML0TLTVldDgDRfnrhSkXdI
+  lifetime: 3600000

@@ -3,7 +3,8 @@ package ru.hse.moms.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.hse.moms.request.FamilyRequest;
+import ru.hse.moms.request.CreateFamilyRequest;
+import ru.hse.moms.request.UpdateFamilyRequest;
 import ru.hse.moms.service.FamilyService;
 
 @RestController
@@ -17,15 +18,15 @@ public class FamilyController {
     }
 
     @PutMapping("/update-family")
-    public ResponseEntity<?> updateFamily(@RequestBody FamilyRequest familyRequest){
-        return ResponseEntity.ok(familyService.updateFamily(familyRequest));
+    public ResponseEntity<?> updateFamily(@RequestBody UpdateFamilyRequest updateFamilyRequest){
+        return ResponseEntity.ok(familyService.addFamilyMemberHost(updateFamilyRequest));
     }
     @DeleteMapping("/delete-family")
-    public ResponseEntity<?> deletefamily(@RequestParam("family_id") Long familyId) {
+    public ResponseEntity<?> deleteFamily(@RequestParam("family_id") Long familyId) {
         return ResponseEntity.ok(familyService.deleteFamily());
     }
     @PostMapping("/create-family")
-    public ResponseEntity<?> createFamily(@RequestBody FamilyRequest familyRequest) {
-        return ResponseEntity.ok(familyService.createFamily(familyRequest));
+    public ResponseEntity<?> createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
+        return ResponseEntity.ok(familyService.createFamily(createFamilyRequest));
     }
 }

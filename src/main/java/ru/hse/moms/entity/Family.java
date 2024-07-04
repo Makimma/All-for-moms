@@ -1,13 +1,12 @@
 package ru.hse.moms.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -27,11 +26,12 @@ public class Family {
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<User> members;
 
-    @OneToOne
-    @JoinColumn(name = "host_id")
-    private User host;
+    @OneToMany
+    @JoinColumn(name = "host_id", referencedColumnName = "id")
+    @Builder.Default
+    private List<User> hosts = new ArrayList<>();
 
-    public Family(User host) {
-        this.host = host;
+    public Family(List<User> hosts) {
+        this.hosts = hosts;
     }
 }

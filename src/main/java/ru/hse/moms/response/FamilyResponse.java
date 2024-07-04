@@ -10,5 +10,5 @@ import java.util.List;
 @Builder
 public class FamilyResponse {
     List<UserResponse> members;
-    UserResponse host;
+    List<UserResponse> hosts;
 }
