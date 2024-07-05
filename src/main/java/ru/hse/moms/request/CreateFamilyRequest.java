@@ -10,5 +10,7 @@ import java.util.List;
 @Builder
 public class CreateFamilyRequest {
     @JsonProperty("members_id")
-    List<Long> membersId;
+    List<FamilyMember> membersId;
+    @JsonProperty("type_id_for_host")
+    Long typeIdForHost;
 }

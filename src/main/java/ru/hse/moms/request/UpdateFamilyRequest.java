@@ -10,8 +10,8 @@ import java.util.List;
 @Builder
 public class UpdateFamilyRequest {
     @JsonProperty("members_id")
-    List<Long> membersId;
+    List<FamilyMember> members;
 
     @JsonProperty("hosts_id")
-    List<Long> hostsId;
+    List<FamilyMember> hosts;
 }

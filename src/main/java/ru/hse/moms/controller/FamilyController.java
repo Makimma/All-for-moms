@@ -18,15 +18,19 @@ public class FamilyController {
     }
 
     @PutMapping("/update-family")
-    public ResponseEntity<?> updateFamily(@RequestBody UpdateFamilyRequest updateFamilyRequest){
-        return ResponseEntity.ok(familyService.addFamilyMemberHost(updateFamilyRequest));
+    public ResponseEntity<?> addFamilyMemberOrHost(@RequestBody UpdateFamilyRequest updateFamilyRequest){
+        return ResponseEntity.ok(familyService.addFamilyMemberOrHost(updateFamilyRequest));
     }
     @DeleteMapping("/delete-family")
-    public ResponseEntity<?> deleteFamily(@RequestParam("family_id") Long familyId) {
+    public ResponseEntity<?> deleteFamily() {
         return ResponseEntity.ok(familyService.deleteFamily());
     }
     @PostMapping("/create-family")
     public ResponseEntity<?> createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
         return ResponseEntity.ok(familyService.createFamily(createFamilyRequest));
+    }
+    @DeleteMapping("/delete-family")
+    public ResponseEntity<?> deleteFamilyMembersOrHosts(@RequestBody UpdateFamilyRequest updateFamilyRequest) {
+        return ResponseEntity.ok(familyService.deleteFamilyMembersOrHosts(updateFamilyRequest));
     }
 }
