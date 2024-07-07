@@ -29,7 +29,7 @@ public class FamilyController {
     public ResponseEntity<?> createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
         return ResponseEntity.ok(familyService.createFamily(createFamilyRequest));
     }
-    @DeleteMapping("/delete-family")
+    @DeleteMapping("/delete-host")
     public ResponseEntity<?> deleteFamilyMembersOrHosts(@RequestBody UpdateFamilyRequest updateFamilyRequest) {
         return ResponseEntity.ok(familyService.deleteFamilyMembersOrHosts(updateFamilyRequest));
     }

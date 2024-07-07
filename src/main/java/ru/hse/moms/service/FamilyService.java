@@ -15,7 +15,9 @@ import ru.hse.moms.request.UpdateFamilyRequest;
 import ru.hse.moms.response.FamilyResponse;
 import ru.hse.moms.security.AuthUtils;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +64,8 @@ public class FamilyService {
     }
 
     public FamilyResponse createFamily(CreateFamilyRequest createFamilyRequest) {
-        List<User> members = createFamilyRequest.getMembersId().stream().map(this::getUserWithType).toList();
+        List<User> members = createFamilyRequest.getMembersId().stream().map(this::getUserWithType)
+                .collect(Collectors.toList());
         User host = getCurrentUser();
 
         host.setType(typeRepository.findById(createFamilyRequest.getTypeIdForHost()).orElseThrow(() ->
@@ -73,11 +76,11 @@ public class FamilyService {
             throw new HostOneFamilyException(String.format("User with id already hosts family with id: %s",
                     familyRepository.findByHostsContaining(host).get().getId()));
         }
+        members.add(host);
         Family newFamily = Family.builder()
                 .members(members)
+                .hosts(List.of(host))
                 .build();
-        newFamily.getHosts().add(host);
-        newFamily.getMembers().add(host);
         return familyMapper.makeFamilyResponse(familyRepository.saveAndFlush(newFamily));
     }
 
