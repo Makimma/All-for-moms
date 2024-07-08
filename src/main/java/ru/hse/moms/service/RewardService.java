@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.Reward;
 import ru.hse.moms.exception.RewardNotFoundException;
+import ru.hse.moms.exception.UserNotFoundException;
 import ru.hse.moms.mapper.RewardMapper;
 import ru.hse.moms.repository.RewardRepository;
+import ru.hse.moms.repository.UserRepository;
 import ru.hse.moms.request.RewardRequest;
 import ru.hse.moms.request.UpdateRewardRequest;
 import ru.hse.moms.response.RewardResponse;
 import ru.hse.moms.security.AuthUtils;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -17,6 +21,7 @@ public class RewardService {
     private final RewardRepository rewardRepository;
     private final RewardMapper rewardMapper;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     public RewardResponse getReward(Long id) {
         return rewardMapper.makeRewardResponse(rewardRepository.findById(id)
@@ -60,5 +65,10 @@ public class RewardService {
         }
         rewardRepository.deleteById(rewardId);
         return true;
+    }
+    public List<RewardResponse> getAllRewardsForUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
+                String.format("User with id %s not found", userId)
+        )).getRewards().stream().map(rewardMapper::makeRewardResponse).toList();
     }
 }

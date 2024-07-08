@@ -27,7 +27,7 @@ public class FamilyService {
     private final UserRepository userRepository;
     private final TypeRepository typeRepository;
 
-    private User getCurrentUser() {
+    User getCurrentUser() {
 
         Long currentUserId = AuthUtils.getCurrentId();
         assert currentUserId != null;

@@ -12,24 +12,24 @@ import ru.hse.moms.service.FamilyService;
 @RequiredArgsConstructor
 public class FamilyController {
     private final FamilyService familyService;
-    @GetMapping("/get-family")
+    @GetMapping()
     public ResponseEntity<?> getFamily(@RequestParam("family_id") Long familyId) {
         return ResponseEntity.ok(familyService.getFamily(familyId));
     }
 
-    @PutMapping("/update-family")
+    @PutMapping()
     public ResponseEntity<?> addFamilyMemberOrHost(@RequestBody UpdateFamilyRequest updateFamilyRequest){
         return ResponseEntity.ok(familyService.addFamilyMemberOrHost(updateFamilyRequest));
     }
-    @DeleteMapping("/delete-family")
+    @DeleteMapping()
     public ResponseEntity<?> deleteFamily() {
         return ResponseEntity.ok(familyService.deleteFamily());
     }
-    @PostMapping("/create-family")
+    @PostMapping()
     public ResponseEntity<?> createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
         return ResponseEntity.ok(familyService.createFamily(createFamilyRequest));
     }
-    @DeleteMapping("/delete-host")
+    @DeleteMapping("/delete-family-member-hosts")
     public ResponseEntity<?> deleteFamilyMembersOrHosts(@RequestBody UpdateFamilyRequest updateFamilyRequest) {
         return ResponseEntity.ok(familyService.deleteFamilyMembersOrHosts(updateFamilyRequest));
     }

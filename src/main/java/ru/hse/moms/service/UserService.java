@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import ru.hse.moms.entity.Page;
 import ru.hse.moms.entity.User;
 import ru.hse.moms.exception.EmailAlreadyExistsException;
 import ru.hse.moms.exception.UserNotFoundException;
@@ -142,5 +143,13 @@ public class UserService {
         user.getRewards().add(rewardRepository.findById(rewardId).orElseThrow(
                 () -> new RuntimeException(String.format("Reward with id: %s not found", rewardId))));
         return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
+    }
+    public void addPageToDiary(Page page) {
+        Long userId = AuthUtils.getCurrentId();
+        assert userId != null;
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
+                String.format("User with id %d is registered but not found in database", userId)));
+        user.getDiary().getPages().add(page);
+        userRepository.saveAndFlush(user);
     }
 }

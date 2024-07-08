@@ -17,12 +17,12 @@ import ru.hse.moms.service.UserService;
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/get-user")
+    @GetMapping()
     public ResponseEntity<?> getUser(@RequestBody GetUserRequest getUserRequest) throws Exception {
         return ResponseEntity.ok(userService.getUser(getUserRequest));
     }
 
-    @PutMapping("/update-user")
+    @PutMapping()
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserRequest updateUserRequest){
         return ResponseEntity.ok(userService.updateUser(updateUserRequest));
     }
@@ -30,7 +30,7 @@ public class UserController {
     public ResponseEntity<?> getCurrentUser(){
         return ResponseEntity.ok(userService.getCurrentUser());
     }
-    @DeleteMapping("/delete-user")
+    @DeleteMapping()
     public ResponseEntity<?> deleteUser(@RequestParam("user_id") Long userId) {
         return ResponseEntity.ok(userService.deleteUser(userId));
     }

@@ -48,6 +48,10 @@ public class User implements UserDetails {
     @JoinColumn(name = "role_id")
     private Role role;
 
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Diary diary;
+
     @ManyToMany
     @JoinTable(
             name = "user_rewards",
