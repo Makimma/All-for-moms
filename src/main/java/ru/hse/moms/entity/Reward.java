@@ -17,9 +17,13 @@ public class Reward {
     private Long id;
     private int cost;
     private String description;
+    private int quantity;
+    private String shortName;
 
     public Reward(int cost,
-                  String description) {
+                  String description,int quantity, String shortName) {
+        this.shortName = shortName;
+        this.quantity = quantity;
         this.cost = cost;
         this.description = description;
     }

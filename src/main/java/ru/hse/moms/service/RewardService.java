@@ -28,6 +28,8 @@ public class RewardService {
         Reward reward = Reward.builder()
                 .description(rewardRequest.getDescription())
                 .cost(rewardRequest.getCost())
+                .quantity(rewardRequest.getQuantity())
+                .shortName(rewardRequest.getShortName())
                 .build();
         rewardRepository.saveAndFlush(reward);
         userService.addReward(reward.getId());
@@ -43,6 +45,12 @@ public class RewardService {
         }
         if (updateRewardRequest.getDescription() != null) {
             reward.setDescription(updateRewardRequest.getDescription());
+        }
+        if (updateRewardRequest.getQuantity() != null) {
+            reward.setQuantity(updateRewardRequest.getQuantity());
+        }
+        if (updateRewardRequest.getShortName() != null) {
+            reward.setShortName(updateRewardRequest.getShortName());
         }
         return rewardMapper.makeRewardResponse(rewardRepository.saveAndFlush(reward));
     }

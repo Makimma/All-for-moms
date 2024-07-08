@@ -10,6 +10,8 @@ public class RewardMapper {
         return RewardResponse.builder()
                 .description(reward.getDescription())
                 .cost(reward.getCost())
+                .quantity(reward.getQuantity())
+                .shortName(reward.getShortName())
                 .build();
     }
 }

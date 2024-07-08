@@ -3,9 +3,6 @@ package ru.hse.moms.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.User;
@@ -25,8 +22,6 @@ import ru.hse.moms.response.JwtResponse;
 import ru.hse.moms.response.UserResponse;
 import ru.hse.moms.security.AuthUtils;
 import ru.hse.moms.security.PasswordEncoderConfig;
-
-import static ru.hse.moms.security.AuthUtils.getCurrentId;
 
 @Service
 @RequiredArgsConstructor
