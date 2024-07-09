@@ -3,12 +3,10 @@ package ru.hse.moms.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
-import ru.hse.moms.entity.Diary;
-import ru.hse.moms.entity.Page;
-import ru.hse.moms.entity.Reward;
-import ru.hse.moms.entity.User;
+import ru.hse.moms.entity.*;
 import ru.hse.moms.exception.*;
 import ru.hse.moms.mapper.UserMapper;
 import ru.hse.moms.repository.RewardRepository;
@@ -133,6 +131,20 @@ public class UserService {
         }
         return false;
 
+    }
+
+    @Transactional
+    public void addPoints(Task task) {
+        Long userId = AuthUtils.getCurrentId();
+        User setter = task.getTaskSetter();
+
+        if (!userId.equals(setter.getId())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
+        User getter = task.getTaskGetter();
+        getter.setBalance(getter.getBalance() + task.getRewardPoint());
+        userRepository.save(getter);
     }
 
     public UserResponse addReward(Long rewardId) {
