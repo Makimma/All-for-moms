@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Data
 @Builder
 public class RewardResponse {
+    private Long id;
     private int cost;
     private String description;
     private int quantity;

@@ -8,6 +8,7 @@ import ru.hse.moms.response.RewardResponse;
 public class RewardMapper {
     public RewardResponse makeRewardResponse(Reward reward) {
         return RewardResponse.builder()
+                .id(reward.getId())
                 .description(reward.getDescription())
                 .cost(reward.getCost())
                 .quantity(reward.getQuantity())

@@ -3,16 +3,13 @@ package ru.hse.moms.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import ru.hse.moms.entity.Diary;
 import ru.hse.moms.entity.Page;
-import ru.hse.moms.entity.Task;
+import ru.hse.moms.entity.Reward;
 import ru.hse.moms.entity.User;
-import ru.hse.moms.exception.EmailAlreadyExistsException;
-import ru.hse.moms.exception.UserNotFoundException;
-import ru.hse.moms.exception.UsernameAlreadyExistsException;
-import ru.hse.moms.exception.WrongPasswordException;
+import ru.hse.moms.exception.*;
 import ru.hse.moms.mapper.UserMapper;
 import ru.hse.moms.repository.RewardRepository;
 import ru.hse.moms.repository.RoleRepository;
@@ -59,6 +56,7 @@ public class UserService {
                 .role(roleRepository.findByRoleName("USER").orElseThrow(() ->
                         new RuntimeException("Create Roles! it tries to find USER role in db")))
                 .name(signUpRequest.getName())
+                .diary(new Diary())
                 .dateOfBirth(signUpRequest.getDateOfBirth())
                 .balance(0)
                 .build();
@@ -146,21 +144,6 @@ public class UserService {
                 () -> new RuntimeException(String.format("Reward with id: %s not found", rewardId))));
         return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
     }
-
-    @Transactional
-    public void addPoints(Task task) {
-        Long userId = AuthUtils.getCurrentId();
-        User setter = task.getTaskSetter();
-
-        if (!userId.equals(setter.getId())) {
-           throw new AccessDeniedException("Access denied");
-        }
-
-        User getter = task.getTaskGetter();
-        getter.setBalance(getter.getBalance() + task.getRewardPoint());
-        userRepository.save(getter);
-    }
-
     public void addPageToDiary(Page page) {
         Long userId = AuthUtils.getCurrentId();
         assert userId != null;
@@ -168,5 +151,27 @@ public class UserService {
                 String.format("User with id %d is registered but not found in database", userId)));
         user.getDiary().getPages().add(page);
         userRepository.saveAndFlush(user);
+    }
+    public UserResponse getReward(Long rewardId) {
+        Reward reward = rewardRepository.findById(rewardId).orElseThrow(
+                () -> new RewardNotFoundException(String.format("Reward with id: %s not found", rewardId))
+        );
+        Long userId = AuthUtils.getCurrentId();
+        assert userId != null;
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
+                String.format("User with id %d is registered but not found in database", userId)));
+        if (reward.getQuantity() > 0) {
+            if (user.getBalance() >= reward.getCost()) {
+                int left = user.getBalance() - reward.getCost();
+                reward.setQuantity(reward.getQuantity() - 1);
+                user.setBalance(left);
+                rewardRepository.saveAndFlush(reward);
+                return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
+            } else {
+                throw new RuntimeException("Not enough balance");
+            }
+        } else {
+            throw new RuntimeException("You can't get this reward it's quantity is 0");
+        }
     }
 }

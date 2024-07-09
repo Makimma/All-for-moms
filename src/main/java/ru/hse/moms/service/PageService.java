@@ -73,7 +73,8 @@ public class PageService {
                 .content(createPageRequest.getContent())
                 .title(createPageRequest.getTitle())
                 .build();
-        userService.addPageToDiary(page);
-        return pageMapper.makePageResponse(page);
+        Page savedPage = pageRepository.saveAndFlush(page);
+        userService.addPageToDiary(savedPage);
+        return pageMapper.makePageResponse(savedPage);
     }
 }

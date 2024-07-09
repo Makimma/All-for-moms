@@ -50,6 +50,7 @@ public class User implements UserDetails {
 
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "diary_id")
     private Diary diary;
 
     @ManyToMany
