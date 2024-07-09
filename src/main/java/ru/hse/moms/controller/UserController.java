@@ -1,14 +1,10 @@
 package ru.hse.moms.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.hse.moms.request.GetUserRequest;
-import ru.hse.moms.request.SignInRequest;
-import ru.hse.moms.request.SignUpRequest;
 import ru.hse.moms.request.UpdateUserRequest;
-import ru.hse.moms.response.JwtResponse;
 import ru.hse.moms.service.UserService;
 
 @RestController
@@ -37,6 +33,10 @@ public class UserController {
     @PutMapping("/add-reward")
     public ResponseEntity<?> addRewardToCurrentUser(@RequestParam("reward_id") Long rewardId) {
         return ResponseEntity.ok(userService.addReward(rewardId));
+    }
+    @PutMapping("/get-reward")
+    public ResponseEntity<?> getRewardFromOtherUser(@RequestParam("reward_id") Long rewardId) {
+        return ResponseEntity.ok(userService.getReward(rewardId));
     }
 
 }

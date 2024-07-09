@@ -7,11 +7,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.Diary;
 import ru.hse.moms.entity.Page;
+import ru.hse.moms.entity.Reward;
 import ru.hse.moms.entity.User;
-import ru.hse.moms.exception.EmailAlreadyExistsException;
-import ru.hse.moms.exception.UserNotFoundException;
-import ru.hse.moms.exception.UsernameAlreadyExistsException;
-import ru.hse.moms.exception.WrongPasswordException;
+import ru.hse.moms.exception.*;
 import ru.hse.moms.mapper.UserMapper;
 import ru.hse.moms.repository.RewardRepository;
 import ru.hse.moms.repository.RoleRepository;
@@ -153,5 +151,27 @@ public class UserService {
                 String.format("User with id %d is registered but not found in database", userId)));
         user.getDiary().getPages().add(page);
         userRepository.saveAndFlush(user);
+    }
+    public UserResponse getReward(Long rewardId) {
+        Reward reward = rewardRepository.findById(rewardId).orElseThrow(
+                () -> new RewardNotFoundException(String.format("Reward with id: %s not found", rewardId))
+        );
+        Long userId = AuthUtils.getCurrentId();
+        assert userId != null;
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
+                String.format("User with id %d is registered but not found in database", userId)));
+        if (reward.getQuantity() > 0) {
+            if (user.getBalance() >= reward.getCost()) {
+                int left = user.getBalance() - reward.getCost();
+                reward.setQuantity(reward.getQuantity() - 1);
+                user.setBalance(left);
+                rewardRepository.saveAndFlush(reward);
+                return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
+            } else {
+                throw new RuntimeException("Not enough balance");
+            }
+        } else {
+            throw new RuntimeException("You can't get this reward it's quantity is 0");
+        }
     }
 }
