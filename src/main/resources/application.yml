@@ -2,10 +2,10 @@ spring:
   application:
     name: moms
   datasource:
-    url: jdbc:postgresql://localhost:5432/moms
+    url: jdbc:postgresql://localhost:5432/Moms
     driverClassName: org.postgresql.Driver
     username: postgres
-    password: 1234
+    password: postgres
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,4 +14,4 @@ spring:
 jwt:
   security:
     secret: dPm0sj-aH7uinrw6kehVHML0TLTVldDgDRfnrhSkXdI
-  lifetime: 3600000
+  lifetime: 300m

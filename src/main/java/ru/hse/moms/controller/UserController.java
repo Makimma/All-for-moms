@@ -26,11 +26,14 @@ public class UserController {
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserRequest updateUserRequest){
         return ResponseEntity.ok(userService.updateUser(updateUserRequest));
     }
+
     @GetMapping("/get-current-user")
     public ResponseEntity<?> getCurrentUser(){
         return ResponseEntity.ok(userService.getCurrentUser());
     }
-    @DeleteMapping()
+
+
+    @DeleteMapping("/delete-user")
     public ResponseEntity<?> deleteUser(@RequestParam("user_id") Long userId) {
         return ResponseEntity.ok(userService.deleteUser(userId));
     }

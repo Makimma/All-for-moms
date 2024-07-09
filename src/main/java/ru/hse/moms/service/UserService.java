@@ -3,9 +3,11 @@ package ru.hse.moms.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.Page;
+import ru.hse.moms.entity.Task;
 import ru.hse.moms.entity.User;
 import ru.hse.moms.exception.EmailAlreadyExistsException;
 import ru.hse.moms.exception.UserNotFoundException;
@@ -144,6 +146,21 @@ public class UserService {
                 () -> new RuntimeException(String.format("Reward with id: %s not found", rewardId))));
         return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
     }
+
+    @Transactional
+    public void addPoints(Task task) {
+        Long userId = AuthUtils.getCurrentId();
+        User setter = task.getTaskSetter();
+
+        if (!userId.equals(setter.getId())) {
+           throw new AccessDeniedException("Access denied");
+        }
+
+        User getter = task.getTaskGetter();
+        getter.setBalance(getter.getBalance() + task.getRewardPoint());
+        userRepository.save(getter);
+    }
+
     public void addPageToDiary(Page page) {
         Long userId = AuthUtils.getCurrentId();
         assert userId != null;

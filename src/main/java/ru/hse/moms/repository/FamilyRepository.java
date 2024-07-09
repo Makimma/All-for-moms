@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface FamilyRepository extends JpaRepository<Family, Long> {
     Optional<Family> findByHostsContaining(User host);
     boolean existsByHostsContains(User host);
+    Optional<Family> findByMembersContaining(User host);
 }

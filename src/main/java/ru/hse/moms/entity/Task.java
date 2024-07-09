@@ -2,6 +2,7 @@ package ru.hse.moms.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +21,7 @@ public class Task {
     private Date startDate;
     private Date endDate;
     private int rewardPoint;
+    private boolean isCompleted;
 
     @ManyToOne
     @JoinColumn(name = "setter_id")
@@ -28,13 +31,13 @@ public class Task {
     @JoinColumn(name = "getter_id")
     private User taskGetter;
 
-    public Task(String description,
-                Date startDate,
-                Date endDate,
-                int rewardPoint) {
-        this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.rewardPoint = rewardPoint;
+    private boolean isRecurring;
+    private RecurrenceInterval recurrenceInterval;
+
+    public enum RecurrenceInterval {
+        DAILY,
+        WEEKLY,
+        MONTHLY,
+        YEARLY
     }
 }
