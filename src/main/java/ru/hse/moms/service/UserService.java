@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import ru.hse.moms.entity.Diary;
 import ru.hse.moms.entity.Page;
 import ru.hse.moms.entity.User;
 import ru.hse.moms.exception.EmailAlreadyExistsException;
@@ -57,6 +58,7 @@ public class UserService {
                 .role(roleRepository.findByRoleName("USER").orElseThrow(() ->
                         new RuntimeException("Create Roles! it tries to find USER role in db")))
                 .name(signUpRequest.getName())
+                .diary(new Diary())
                 .dateOfBirth(signUpRequest.getDateOfBirth())
                 .balance(0)
                 .build();

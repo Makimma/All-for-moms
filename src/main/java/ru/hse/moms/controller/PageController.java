@@ -11,7 +11,7 @@ import ru.hse.moms.response.PageResponse;
 import ru.hse.moms.response.UserResponse;
 import ru.hse.moms.service.PageService;
 
-@Controller
+@RestController
 @RequestMapping("/api/page")
 @RequiredArgsConstructor
 public class PageController {

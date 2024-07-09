@@ -24,6 +24,6 @@ public class Diary {
 
     @Builder.Default
     @OneToMany
-    @JoinColumn(name = "pages_id", referencedColumnName = "diary_id")
+    @JoinColumn(name = "diary_id", referencedColumnName = "diary_id")
     private List<Page> pages = new ArrayList<>();
 }
