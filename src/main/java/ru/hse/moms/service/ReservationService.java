@@ -10,13 +10,13 @@ import ru.hse.moms.exception.UserNotFoundException;
 import ru.hse.moms.repository.ReservationRepository;
 import ru.hse.moms.repository.ItemRepository;
 import ru.hse.moms.repository.UserRepository;
-import ru.hse.moms.response.ItemResponse;
 import ru.hse.moms.response.ReservationResponse;
 import ru.hse.moms.security.AuthUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+//import static ru.hse.moms.service.WishlistService.toItemResponse;
 @Service
 public class ReservationService {
 
@@ -69,17 +69,7 @@ public class ReservationService {
 
     private ReservationResponse toResponse(Reservation reservation) {
         ReservationResponse response = new ReservationResponse();
-        response.setItems(List.of(toItemResponse(reservation.getItem())));
-        return response;
-    }
-
-    private ItemResponse toItemResponse(Item item) {
-        ItemResponse response = new ItemResponse();
-        response.setId(item.getId());
-        response.setName(item.getName());
-        response.setAllowAlternatives(item.isAllowAlternatives());
-        response.setReserved(item.getReservation() != null);
-        response.setLink(item.getLink());
+        response.setItems(List.of(WishlistService.toItemResponse(reservation.getItem())));
         return response;
     }
 }

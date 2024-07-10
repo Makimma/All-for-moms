@@ -103,11 +103,11 @@ public class WishlistService {
     private WishlistResponse toResponse(Wishlist wishlist) {
         WishlistResponse response = new WishlistResponse();
         response.setId(wishlist.getId());
-        response.setItems(wishlist.getItems().stream().map(this::toItemResponse).collect(Collectors.toList()));
+        response.setItems(wishlist.getItems().stream().map(WishlistService::toItemResponse).collect(Collectors.toList()));
         return response;
     }
 
-    private ItemResponse toItemResponse(Item item) {
+    static ItemResponse toItemResponse(Item item) {
         ItemResponse response = new ItemResponse();
         response.setId(item.getId());
         response.setName(item.getName());
