@@ -10,10 +10,10 @@ import java.util.Date;
 @Data
 @Builder
 public class TaskResponse {
-    @JsonProperty("id")
     private Long id;
 
-    @JsonProperty("description")
+    private String title;
+
     private String description;
 
     @JsonProperty("start_date")

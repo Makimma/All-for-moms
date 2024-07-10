@@ -8,7 +8,8 @@ import java.util.Date;
 
 @Data
 public class TaskRequest {
-    @JsonProperty("description")
+    private String title;
+
     private String description;
 
     @JsonProperty("start_date")

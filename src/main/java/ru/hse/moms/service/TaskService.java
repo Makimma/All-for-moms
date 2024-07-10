@@ -57,7 +57,9 @@ public class TaskService {
 
         taskCheck(taskRequest, setter, family, getter);
 
-        Task task = Task.builder().description(taskRequest.getDescription())
+        Task task = Task.builder()
+                .title(taskRequest.getTitle())
+                .description(taskRequest.getDescription())
                 .startDate(taskRequest.getStartDate())
                 .endDate(taskRequest.getEndDate())
                 .taskGetter(getter)
@@ -89,6 +91,7 @@ public class TaskService {
     private TaskResponse toResponse(Task task) {
         return TaskResponse.builder()
                 .taskGetter(task.getTaskGetter().getId())
+                .title(task.getTitle())
                 .description(task.getDescription())
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())
@@ -98,12 +101,6 @@ public class TaskService {
                 .isCompleted(task.isCompleted())
                 .recurrenceInterval(task.getRecurrenceInterval())
                 .build();
-    }
-
-    public List<TaskResponse> getAllTasks() {
-        return taskRepository.findAll().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -122,6 +119,7 @@ public class TaskService {
     public void createRecurringTask(Task task) {
         Task newTask = new Task();
         newTask.setDescription(task.getDescription());
+        newTask.setTitle(task.getTitle());
         newTask.setRecurring(true);
         newTask.setRecurrenceInterval(task.getRecurrenceInterval());
         newTask.setTaskGetter(task.getTaskGetter());
@@ -173,6 +171,7 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
+        task.setTitle(taskRequest.getTitle());
         task.setDescription(taskRequest.getDescription());
         task.setStartDate(taskRequest.getStartDate());
         task.setEndDate(taskRequest.getEndDate());
