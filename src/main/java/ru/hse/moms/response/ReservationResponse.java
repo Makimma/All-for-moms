@@ -5,7 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class WishlistResponse {
-    private Long id;
+public class ReservationResponse {
     private List<ItemResponse> items;
 }
