@@ -25,12 +25,6 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
-//    @GetMapping("/all")
-//    public ResponseEntity<List<TaskResponse>> getAllTasks() {
-//        List<TaskResponse> taskResponses = taskService.getAllTasks();
-//        return ResponseEntity.ok(taskResponses);
-//    }
-
     @GetMapping("/getter/{userId}")
     public ResponseEntity<List<TaskResponse>> getTasksByTaskGetterId(@PathVariable Long userId) {
         List<TaskResponse> taskResponses = taskService.getTasksByTaskGetterId(userId);

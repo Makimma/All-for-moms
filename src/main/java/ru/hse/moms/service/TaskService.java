@@ -18,7 +18,6 @@ import ru.hse.moms.response.TaskResponse;
 import ru.hse.moms.security.AuthUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,16 +27,20 @@ public class TaskService {
     private final UserRepository userRepository;
     private final FamilyRepository familyRepository;
 
-    private void taskCheck(TaskRequest taskRequest,
-                           User setter,
-                           Family family,
-                           User getter) {
-        if (!family.getHosts().contains(setter) || !family.getMembers().contains(getter)) {
-            throw new AccessDeniedException("Family not found");
+    private void taskCheck(TaskRequest taskRequest, Family family, User setter, User getter) {
+        //Одна семья
+        if (!family.getMembers().contains(getter)) {
+            throw new AccessDeniedException("Access denied");
         }
 
-        Date currentDate = new Date();
-        if (currentDate.after(taskRequest.getEndDate())) {
+        //Задание за баллы
+        if (taskRequest.getRewardPoint() != 0) {
+            if (!family.getHosts().contains(setter)) {
+                throw new AccessDeniedException("Not host");
+            }
+        }
+
+        if (new Date().after(taskRequest.getEndDate())) {
             throw new IllegalArgumentException("The end date must be in the future.");
         }
 
@@ -55,7 +58,7 @@ public class TaskService {
         Family family = familyRepository.findByMembersContaining(setter)
                 .orElseThrow(() -> new FamilyNotFound("Family not found"));
 
-        taskCheck(taskRequest, setter, family, getter);
+        taskCheck(taskRequest, family, setter, getter);
 
         Task task = Task.builder()
                 .title(taskRequest.getTitle())
@@ -166,10 +169,15 @@ public class TaskService {
         User getter = userRepository.findById(taskRequest.getTaskGetter())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        taskCheck(taskRequest, setter, family, getter);
+        taskCheck(taskRequest, family, setter, getter);
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        //Только тот кто дал задание может менять
+        if (!task.getTaskSetter().getId().equals(setter.getId())) {
+            throw new AccessDeniedException("Not setter");
+        }
 
         task.setTitle(taskRequest.getTitle());
         task.setDescription(taskRequest.getDescription());
