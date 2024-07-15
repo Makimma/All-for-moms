@@ -5,14 +5,19 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.hse.moms.entity.Family;
+import ru.hse.moms.entity.RecurringTaskInfo;
 import ru.hse.moms.entity.Task;
 import ru.hse.moms.entity.User;
+import ru.hse.moms.periods.Interval;
 import ru.hse.moms.exception.FamilyNotFound;
+import ru.hse.moms.exception.InvalidDateException;
 import ru.hse.moms.exception.TaskNotFoundException;
 import ru.hse.moms.exception.UserNotFoundException;
 import ru.hse.moms.repository.FamilyRepository;
+import ru.hse.moms.repository.RecurringTaskInfoRepository;
 import ru.hse.moms.repository.TaskRepository;
 import ru.hse.moms.repository.UserRepository;
+import ru.hse.moms.request.RecurringTaskRequest;
 import ru.hse.moms.request.TaskRequest;
 import ru.hse.moms.response.TaskResponse;
 import ru.hse.moms.security.AuthUtils;
@@ -26,53 +31,117 @@ public class TaskService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final FamilyRepository familyRepository;
+    private final RecurringTaskInfoRepository recurringTaskInfoRepository;
 
-    private void taskCheck(TaskRequest taskRequest, Family family, User setter, User getter) {
-        //Одна семья
-        if (!family.getMembers().contains(getter)) {
-            throw new AccessDeniedException("Access denied");
+    private void dateCheck(Date startDate, Date endDate) {
+        if (new Date().after(endDate)) {
+            throw new InvalidDateException("The end date must be in the future.");
         }
 
+        if (endDate.before(startDate)) {
+            throw new InvalidDateException("The end date must be after the start date.");
+        }
+    }
+
+    private void rewardPointCheck(Family family, User setter, int rewardPoint) {
         //Задание за баллы
-        if (taskRequest.getRewardPoint() != 0) {
+        if (rewardPoint != 0) {
             if (!family.getHosts().contains(setter)) {
                 throw new AccessDeniedException("Not host");
             }
         }
+    }
 
-        if (new Date().after(taskRequest.getEndDate())) {
-            throw new IllegalArgumentException("The end date must be in the future.");
-        }
-
-        if (taskRequest.getEndDate().before(taskRequest.getStartDate())) {
-            throw new IllegalArgumentException("The end date must be after the start date.");
+    private void isInFamily(Family family, User user) {
+        //Одна семья
+        if (!family.getMembers().contains(user)) {
+            throw new AccessDeniedException("Access denied");
         }
     }
 
     @Transactional
-    public TaskResponse createTask(TaskRequest taskRequest) {
+    public List<TaskResponse> createTasks(RecurringTaskRequest recurringTaskRequest) {
         User setter = userRepository.findById(Objects.requireNonNull(AuthUtils.getCurrentId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        User getter = userRepository.findById(taskRequest.getTaskGetter())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
         Family family = familyRepository.findByMembersContaining(setter)
                 .orElseThrow(() -> new FamilyNotFound("Family not found"));
 
-        taskCheck(taskRequest, family, setter, getter);
+        rewardPointCheck(family, setter, recurringTaskRequest.getRewardPoint());
+        dateCheck(recurringTaskRequest.getStartDate(), recurringTaskRequest.getEndDate());
 
-        Task task = Task.builder()
-                .title(taskRequest.getTitle())
-                .description(taskRequest.getDescription())
-                .startDate(taskRequest.getStartDate())
-                .endDate(taskRequest.getEndDate())
-                .taskGetter(getter)
-                .taskSetter(setter)
-                .rewardPoint(taskRequest.getRewardPoint())
-                .isCompleted(false)
-                .build();
-        taskRepository.save(task);
+        List<User> getters = new ArrayList<>();
+        for (Long userId : recurringTaskRequest.getTaskGetters()) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            getters.add(user);
 
-        return toResponse(task);
+            isInFamily(family, user);
+        }
+
+        RecurringTaskInfo recurringTaskInfo = new RecurringTaskInfo();
+        recurringTaskInfo.setSetter(setter);
+        recurringTaskInfo.setGetters(getters);
+        recurringTaskInfo.setIntervals(recurringTaskRequest.getIntervals());
+        recurringTaskInfo.setUserOrder(recurringTaskRequest.getGetterOrder());
+        recurringTaskInfo.setStartDate(recurringTaskRequest.getStartDate());
+        recurringTaskInfo.setEndDate(recurringTaskRequest.getEndDate());
+
+        recurringTaskInfo = recurringTaskInfoRepository.save(recurringTaskInfo);
+
+        return createTasksFromRecurringInfo(
+                recurringTaskInfo,
+                recurringTaskRequest.getTitle(),
+                recurringTaskRequest.getDescription(),
+                recurringTaskRequest.getRewardPoint(),
+                recurringTaskRequest.getTaskDuration());
+    }
+
+    private List<TaskResponse> createTasksFromRecurringInfo(
+            RecurringTaskInfo info,
+            String title,
+            String description,
+            int rewardPoint,
+            int taskDuration) {
+        List<User> getters = info.getGetters();
+        List<Interval> intervals = info.getIntervals();
+        List<Integer> userOrder = info.getUserOrder();
+
+        int userIndex = 0;
+        int intervalIndex = 0;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(info.getStartDate());
+
+        List<TaskResponse> tasks = new ArrayList<>();
+        while (calendar.getTime().before(info.getEndDate())) {
+            Interval interval = intervals.get(intervalIndex % intervals.size());
+            Task task = Task.builder()
+                    .title(title)
+                    .description(description)
+                    .startDate(calendar.getTime())
+                    .endDate(addInterval(calendar.getTime(), taskDuration))
+                    .rewardPoint(rewardPoint)
+                    .isCompleted(false)
+                    .taskSetter(info.getSetter())
+                    .taskGetter(getters.get(userOrder.get(userIndex)))
+                    .recurringTaskInfo(info)
+                    .build();
+
+            tasks.add(toResponse(taskRepository.save(task)));
+
+            userIndex = (userIndex + 1) % userOrder.size();
+            intervalIndex++;
+            calendar.setTime(addInterval(calendar.getTime(), taskDuration + interval.getDuration()));
+        }
+        return tasks;
+    }
+
+    private Date addInterval(Date date, int hours) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.HOUR_OF_DAY, hours);
+        return calendar.getTime();
     }
 
 
@@ -80,13 +149,13 @@ public class TaskService {
     public void completeTask(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        task.setCompleted(true);
 
         if (!task.getTaskSetter().getId().equals(AuthUtils.getCurrentId())) {
             throw new AccessDeniedException("Not allowed to complete task");
         }
 
         userService.addPoints(task);
+
         task.setCompleted(true);
         taskRepository.save(task);
     }
@@ -100,65 +169,51 @@ public class TaskService {
                 .endDate(task.getEndDate())
                 .rewardPoint(task.getRewardPoint())
                 .id(task.getId())
-                .isRecurring(task.isRecurring())
                 .isCompleted(task.isCompleted())
-                .recurrenceInterval(task.getRecurrenceInterval())
+                .recurringTaskInfoId(task.getRecurringTaskInfo().getId())
                 .build();
     }
 
-    @Transactional
-    public void handleRecurringTasks() {
-        Date currentDate = new Date();
-        List<Task> recurringTasks = taskRepository.findAll().stream()
-                .filter(task -> task.isRecurring() && task.getEndDate().before(currentDate))
-                .toList();
-
-        for (Task task : recurringTasks) {
-            createRecurringTask(task);
-        }
-    }
-
-    @Transactional
-    public void createRecurringTask(Task task) {
-        Task newTask = new Task();
-        newTask.setDescription(task.getDescription());
-        newTask.setTitle(task.getTitle());
-        newTask.setRecurring(true);
-        newTask.setRecurrenceInterval(task.getRecurrenceInterval());
-        newTask.setTaskGetter(task.getTaskGetter());
-
-        Calendar calendarStart = Calendar.getInstance();
-        calendarStart.setTime(task.getStartDate());
-
-        Calendar calendarEnd = Calendar.getInstance();
-        calendarEnd.setTime(task.getEndDate());
-
-        switch (task.getRecurrenceInterval()) {
-            case DAILY:
-                calendarStart.add(Calendar.DAY_OF_YEAR, 1);
-                calendarEnd.add(Calendar.DAY_OF_YEAR, 1);
-                break;
-            case WEEKLY:
-                calendarStart.add(Calendar.WEEK_OF_YEAR, 1);
-                calendarEnd.add(Calendar.WEEK_OF_YEAR, 1);
-                break;
-            case MONTHLY:
-                calendarStart.add(Calendar.MONTH, 1);
-                calendarEnd.add(Calendar.MONTH, 1);
-                break;
-            case YEARLY:
-                calendarStart.add(Calendar.YEAR, 1);
-                calendarEnd.add(Calendar.YEAR, 1);
-                break;
-        }
-
-        task.setCompleted(true);
-        taskRepository.save(task);
-
-        newTask.setStartDate(calendarStart.getTime());
-        newTask.setEndDate(calendarEnd.getTime());
-        taskRepository.save(newTask);
-    }
+//    @Transactional
+//    public void createRecurringTask(Task task) {
+//        Task newTask = new Task();
+//        newTask.setDescription(task.getDescription());
+//        newTask.setTitle(task.getTitle());
+//        newTask.setTaskGetter(task.getTaskGetter());
+//
+//        Calendar calendarStart = Calendar.getInstance();
+//        calendarStart.setTime(task.getStartDate());
+//
+//        Calendar calendarEnd = Calendar.getInstance();
+//        calendarEnd.setTime(task.getEndDate());
+//
+//        switch (task.getRecurrenceInterval()) {
+//            case DAILY:
+//                calendarStart.add(Calendar.DAY_OF_YEAR, 1);
+//                calendarEnd.add(Calendar.DAY_OF_YEAR, 1);
+//                break;
+//            case WEEKLY:
+//                calendarStart.add(Calendar.WEEK_OF_YEAR, 1);
+//                calendarEnd.add(Calendar.WEEK_OF_YEAR, 1);
+//                break;
+//            case MONTHLY:
+//                calendarStart.add(Calendar.MONTH, 1);
+//                calendarEnd.add(Calendar.MONTH, 1);
+//                break;
+//            case YEARLY:
+//                calendarStart.add(Calendar.YEAR, 1);
+//                calendarEnd.add(Calendar.YEAR, 1);
+//                break;
+//        }
+//
+//        task.setCompleted(true);
+//        taskRepository.save(task);
+//
+//        newTask.setStartDate(calendarStart.getTime());
+//        newTask.setEndDate(calendarEnd.getTime());
+//        taskRepository.save(newTask);
+//    }
+//
 
     @Transactional
     public TaskResponse updateTask(Long taskId, TaskRequest taskRequest) {
@@ -169,7 +224,9 @@ public class TaskService {
         User getter = userRepository.findById(taskRequest.getTaskGetter())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        taskCheck(taskRequest, family, setter, getter);
+        isInFamily(family, getter);
+        rewardPointCheck(family, setter, taskRequest.getRewardPoint());
+        dateCheck(taskRequest.getStartDate(), taskRequest.getEndDate());
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
@@ -183,8 +240,6 @@ public class TaskService {
         task.setDescription(taskRequest.getDescription());
         task.setStartDate(taskRequest.getStartDate());
         task.setEndDate(taskRequest.getEndDate());
-        task.setRecurring(taskRequest.isRecurring());
-        task.setRecurrenceInterval(taskRequest.getRecurrenceInterval());
         task.setTaskGetter(getter);
         task.setRewardPoint(taskRequest.getRewardPoint());
 
@@ -217,6 +272,24 @@ public class TaskService {
             throw new AccessDeniedException("Not allowed to delete task");
         }
         taskRepository.deleteById(taskId);
+    }
+
+    @Transactional
+    public void deleteRecurringTasks(Long recurringTaskInfoId) {
+        RecurringTaskInfo recurringTaskInfo = recurringTaskInfoRepository.findById(recurringTaskInfoId)
+                .orElseThrow(() -> new RuntimeException("Recurring task info not found"));
+        List<Task> tasks = taskRepository.findByTaskSetterId(recurringTaskInfo.getSetter().getId());
+
+
+        Date now = new Date();
+        for (Task task : tasks) {
+            if (task.getStartDate().after(now) && !task.isCompleted()) {
+                taskRepository.delete(task);
+            }
+        }
+
+        recurringTaskInfo.setDeleted(true);
+        recurringTaskInfoRepository.save(recurringTaskInfo);
     }
 
     public List<TaskResponse> getTasksByTaskSetterId(Long userId) {

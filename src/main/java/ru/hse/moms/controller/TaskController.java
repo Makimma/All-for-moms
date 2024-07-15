@@ -3,6 +3,7 @@ package ru.hse.moms.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.hse.moms.request.RecurringTaskRequest;
 import ru.hse.moms.request.TaskRequest;
 import ru.hse.moms.response.TaskResponse;
 import ru.hse.moms.service.TaskService;
@@ -20,8 +21,8 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest taskRequest) {
-        TaskResponse taskResponse = taskService.createTask(taskRequest);
+    public ResponseEntity<List<TaskResponse>> createTask(@RequestBody RecurringTaskRequest recurringTaskRequest) {
+        List<TaskResponse> taskResponse = taskService.createTasks(recurringTaskRequest);
         return ResponseEntity.ok(taskResponse);
     }
 
@@ -47,6 +48,12 @@ public class TaskController {
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id) {
         TaskResponse taskResponse = taskService.getTaskById(id);
         return ResponseEntity.ok(taskResponse);
+    }
+
+    @DeleteMapping("/recurring/{recurringTaskInfoId}")
+    public ResponseEntity<Void> deleteRecurringTasks(@PathVariable Long recurringTaskInfoId) {
+        taskService.deleteRecurringTasks(recurringTaskInfoId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")

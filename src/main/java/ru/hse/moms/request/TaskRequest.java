@@ -1,15 +1,15 @@
 package ru.hse.moms.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
-import ru.hse.moms.entity.Task;
 
 import java.util.Date;
 
 @Data
+@Builder
 public class TaskRequest {
     private String title;
-
     private String description;
 
     @JsonProperty("start_date")
@@ -17,12 +17,6 @@ public class TaskRequest {
 
     @JsonProperty("end_date")
     private Date endDate;
-
-    @JsonProperty("is_recurring")
-    private boolean isRecurring;
-
-    @JsonProperty("recurrence_interval")
-    private Task.RecurrenceInterval recurrenceInterval;
 
     @JsonProperty("task_getter")
     private Long taskGetter;

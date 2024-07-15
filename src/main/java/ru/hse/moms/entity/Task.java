@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,13 +32,7 @@ public class Task {
     @JoinColumn(name = "getter_id")
     private User taskGetter;
 
-    private boolean isRecurring;
-    private RecurrenceInterval recurrenceInterval;
-
-    public enum RecurrenceInterval {
-        DAILY,
-        WEEKLY,
-        MONTHLY,
-        YEARLY
-    }
+    @ManyToOne
+    @JoinColumn(name = "recurring_task_info_id")
+    private RecurringTaskInfo recurringTaskInfo;
 }
