@@ -15,7 +15,6 @@ import ru.hse.moms.request.UpdateFamilyRequest;
 import ru.hse.moms.response.FamilyResponse;
 import ru.hse.moms.security.AuthUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +37,7 @@ public class FamilyService {
     public FamilyResponse getFamily(Long familyId) throws AccessDeniedException {
         User user = getCurrentUser();
         Family family = familyRepository.findById(familyId).orElseThrow(() ->
-                new FamilyNotFound(String.format("Family with id %d not found", familyId)));
+                new FamilyNotFoundException(String.format("Family with id %d not found", familyId)));
         if (!family.getMembers().contains(user)) {
             throw new AccessDeniedException("Access denied: You are not a member of this family");
         }
@@ -92,7 +91,7 @@ public class FamilyService {
                         userRepository.findById(currentUserId).orElseThrow(
                                 () -> new UserNotFoundException("User is logged, but no info in database"))
                 ).orElseThrow(
-                        () -> new FamilyNotFound(
+                        () -> new FamilyNotFoundException(
                                 String.format(
                                         "For user with id: %s no hosted families were found", currentUserId))).getId()
         );

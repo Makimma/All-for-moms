@@ -38,8 +38,10 @@ public class UserController {
         return ResponseEntity.ok(userService.addReward(rewardId));
     }
     @PutMapping("/get-reward")
-    public ResponseEntity<?> getRewardFromOtherUser(@RequestParam("reward_id") Long rewardId) {
-        return ResponseEntity.ok(userService.getReward(rewardId));
+    public ResponseEntity<?> getRewardFromOtherUser(@RequestParam("reward_id") Long rewardId,
+                                                    @RequestParam("user_id") Long familyId,
+                                                    @RequestParam("user_id") Long userWithRewardId) {
+        return ResponseEntity.ok(userService.getRewardFromUser(rewardId, familyId, userWithRewardId));
     }
 
 }

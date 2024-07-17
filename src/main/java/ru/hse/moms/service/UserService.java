@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.hse.moms.entity.*;
 import ru.hse.moms.exception.*;
 import ru.hse.moms.mapper.UserMapper;
-import ru.hse.moms.repository.RewardRepository;
-import ru.hse.moms.repository.RoleRepository;
-import ru.hse.moms.repository.UserRepository;
+import ru.hse.moms.repository.*;
 import ru.hse.moms.request.GetUserRequest;
 import ru.hse.moms.request.SignInRequest;
 import ru.hse.moms.request.SignUpRequest;
@@ -31,6 +29,8 @@ public class UserService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final RewardRepository rewardRepository;
+    private final FamilyRepository familyRepository;
+    private final ObligationRepository obligationRepository;
 
 
     public UserDetailsService userDetailsService() {
@@ -164,7 +164,7 @@ public class UserService {
         user.getDiary().getPages().add(page);
         userRepository.saveAndFlush(user);
     }
-    public UserResponse getReward(Long rewardId) {
+    public UserResponse getRewardFromUser(Long rewardId, Long familyId, Long userWithRewardId) {
         Reward reward = rewardRepository.findById(rewardId).orElseThrow(
                 () -> new RewardNotFoundException(String.format("Reward with id: %s not found", rewardId))
         );
@@ -172,18 +172,36 @@ public class UserService {
         assert userId != null;
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
                 String.format("User with id %d is registered but not found in database", userId)));
+        User userWithReward = userRepository.findById(userWithRewardId).orElseThrow(() -> new UserNotFoundException(
+                String.format("User with id %d not found", userWithRewardId)
+                ));
+        Family family = familyRepository.findById(familyId).orElseThrow(() -> new FamilyNotFoundException(
+                String.format("Family with id %d not found", familyId)
+        ));
+        if (!family.getMembers().contains(user) || !family.getMembers().contains(userWithReward)) {
+            throw new AccessDeniedException("Access denied! You are not in a family");
+        }
         if (reward.getQuantity() > 0) {
             if (user.getBalance() >= reward.getCost()) {
                 int left = user.getBalance() - reward.getCost();
                 reward.setQuantity(reward.getQuantity() - 1);
                 user.setBalance(left);
+                Double money = 0.0;
+                // get transaction from points to real money
+                Obligation obligation = Obligation.builder()
+                        .fromUser(user)
+                        .toUser(userWithReward)
+                        .money(money)
+                        .description(reward.getDescription())
+                        .build();
+                obligationRepository.saveAndFlush(obligation);
                 rewardRepository.saveAndFlush(reward);
                 return userMapper.makeUserResponse(userRepository.saveAndFlush(user));
             } else {
                 throw new RuntimeException("Not enough balance");
             }
         } else {
-            throw new RuntimeException("You can't get this reward it's quantity is 0");
+            throw new RuntimeException("You can't get this reward its quantity is 0");
         }
     }
 }
